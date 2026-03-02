@@ -1,0 +1,15 @@
+## .NET
+bin/
+obj/
+
+## User Secrets
+appsettings.Development.json
+
+## IDE
+.vs/
+.vscode/
+*.user
+
+## OS
+Thumbs.db
+Desktop.ini
