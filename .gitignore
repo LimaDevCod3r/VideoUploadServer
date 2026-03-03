@@ -13,3 +13,4 @@ appsettings.Development.json
 ## OS
 Thumbs.db
 Desktop.ini
+.vscode/*
