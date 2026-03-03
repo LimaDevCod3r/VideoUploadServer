@@ -39,7 +39,7 @@ VideoUploadServer/
 | -------- | ------------------------ | -------------------------------------- | ------------------------ |
 | `GET`    | `/api/upload`            | Lista todos os vídeos com resolução    | `200 OK`                 |
 | `GET`    | `/api/upload/{fileName}` | Busca um vídeo pelo nome               | `200 OK` / `404`         |
-| `POST`   | `/api/upload`            | Upload de vídeos (multipart/form-data) | `200 OK`                 |
+| `POST`   | `/api/upload`            | Upload de vídeos (multipart/form-data) | `201 Created`            |
 | `DELETE` | `/api/upload/{fileName}` | Deleta um vídeo pelo nome              | `204 No Content` / `404` |
 
 ### 🔐 Autenticação

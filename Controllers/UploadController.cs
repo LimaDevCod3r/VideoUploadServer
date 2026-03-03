@@ -41,7 +41,7 @@ public class UploadController : ControllerBase
     public async Task<IActionResult> UploadVideos([FromForm] List<IFormFile> videos)
     {
         var result = await _uploadService.UploadVideos(videos);
-        return Ok(result);
+        return StatusCode(201, result);
     }
 
     [HttpDelete("{fileName}")]
