@@ -6,30 +6,28 @@ namespace VideoUploadServer.Services;
 public class StorageService
 {
 
-    private readonly string _rootPath;
-
+    private readonly DriveInfo _drive;
     public StorageService(IConfiguration configuration)
     {
         var storagePath = configuration["UploadSettings:StoragePath"] ??
             throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
 
-        _rootPath = Path.GetPathRoot(storagePath) ??
+        var rootPath = Path.GetPathRoot(storagePath) ??
         throw new InvalidOperationException(
             "Não foi possível determinar o root do caminho configurado.");
+
+        _drive = new DriveInfo(rootPath);
     }
 
     public StorageInfo GetStorageInfo()
     {
-        var drive = new DriveInfo(_rootPath);
-
-        if (!drive.IsReady)
+        if (!_drive.IsReady)
         {
             throw new InvalidOperationException("Drive não está disponível.");
         }
 
-
-        long total = drive.TotalSize;
-        long free = drive.AvailableFreeSpace;
+        long total = _drive.TotalSize;
+        long free = _drive.AvailableFreeSpace;
         long used = total - free;
         double percentage = total == 0
        ? 0
@@ -42,5 +40,16 @@ public class StorageService
             UsedBytes = used,
             UsedPercentage = percentage
         };
+    }
+
+    public long GetFreeBytes()
+    {
+
+        if (!_drive.IsReady)
+        {
+            throw new InvalidOperationException("Drive não está disponível.");
+        }
+
+        return _drive.AvailableFreeSpace;
     }
 }
