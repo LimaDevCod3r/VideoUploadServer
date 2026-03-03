@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VideoUploadServer.Exceptions;
 using VideoUploadServer.Services;
 
 namespace VideoUploadServer.Controllers;
@@ -40,8 +41,16 @@ public class UploadController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> UploadVideos([FromForm] List<IFormFile> videos)
     {
-        var result = await _uploadService.UploadVideos(videos);
-        return StatusCode(201, result);
+        try
+        {
+            var result = await _uploadService.UploadVideos(videos);
+            return StatusCode(201, result);
+        }
+        catch (InsufficientStorageException ex)
+        {
+
+            return StatusCode(507, ex.Message);
+        }
     }
 
     [HttpDelete("{fileName}")]
