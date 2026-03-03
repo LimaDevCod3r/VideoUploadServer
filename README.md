@@ -18,15 +18,20 @@ API REST desenvolvida em **ASP.NET Core** para upload, listagem e gerenciamento 
 ```
 VideoUploadServer/
 ├── Controllers/
-│   └── UploadController.cs       # Endpoints HTTP (GET, POST, DELETE)
+│   ├── UploadController.cs       # Endpoints de vídeo (GET, POST, DELETE)
+│   └── StorageController.cs      # Endpoint de armazenamento (GET)
 ├── Services/
-│   └── UploadService.cs          # Lógica de negócio (salvar, listar, deletar)
+│   ├── UploadService.cs          # Lógica de negócio (salvar, listar, deletar)
+│   └── StorageService.cs         # Lógica de armazenamento (info do disco)
 ├── Middlewares/
 │   └── ApiKeyMiddleware.cs       # Autenticação por API Key
+├── Exceptions/
+│   └── InsufficientStorageException.cs  # Exceção para disco cheio
 ├── Dtos/
 │   └── Responses/
 │       ├── UploadResult.cs       # DTO de resposta do upload
-│       └── VideoInfo.cs          # DTO de resposta da listagem
+│       ├── VideoInfo.cs          # DTO de resposta da listagem
+│       └── StorageInfo.cs        # DTO de informações do disco
 ├── Program.cs                    # Configuração da aplicação
 └── appsettings.json              # Configurações gerais
 ```
@@ -35,12 +40,13 @@ VideoUploadServer/
 
 ## 🌐 Endpoints
 
-| Método   | Rota                     | Descrição                              | Resposta                 |
-| -------- | ------------------------ | -------------------------------------- | ------------------------ |
-| `GET`    | `/api/upload`            | Lista todos os vídeos com resolução    | `200 OK`                 |
-| `GET`    | `/api/upload/{fileName}` | Busca um vídeo pelo nome               | `200 OK` / `404`         |
-| `POST`   | `/api/upload`            | Upload de vídeos (multipart/form-data) | `201 Created`            |
-| `DELETE` | `/api/upload/{fileName}` | Deleta um vídeo pelo nome              | `204 No Content` / `404` |
+| Método   | Rota                     | Descrição                              | Resposta                                   |
+| -------- | ------------------------ | -------------------------------------- | ------------------------------------------ |
+| `GET`    | `/api/upload`            | Lista todos os vídeos com resolução    | `200 OK`                                   |
+| `GET`    | `/api/upload/{fileName}` | Busca um vídeo pelo nome               | `200 OK` / `404`                           |
+| `POST`   | `/api/upload`            | Upload de vídeos (multipart/form-data) | `201 Created` / `507 Insufficient Storage` |
+| `DELETE` | `/api/upload/{fileName}` | Deleta um vídeo pelo nome              | `204 No Content` / `404`                   |
+| `GET`    | `/api/storage`           | Informações de armazenamento do disco  | `200 OK`                                   |
 
 ### 🔐 Autenticação
 
