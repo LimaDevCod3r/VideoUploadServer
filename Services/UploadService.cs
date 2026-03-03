@@ -1,5 +1,6 @@
 using FFMpegCore;
 using VideoUploadServer.Dtos.Responses;
+using VideoUploadServer.Exceptions;
 
 namespace VideoUploadServer.Services;
 
@@ -8,12 +9,14 @@ public class UploadService
 {
 
     private readonly string _storagePath;
+    private readonly StorageService _storageService;
 
-    public UploadService(IConfiguration configuration)
+    public UploadService(IConfiguration configuration, StorageService storageService)
     {
         _storagePath = configuration["UploadSettings:StoragePath"] ??
             throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
 
+        _storageService = storageService;
     }
 
 
@@ -76,8 +79,19 @@ public class UploadService
     {
         Directory.CreateDirectory(_storagePath);
 
-        var result = new List<UploadResult>();
 
+        long totalBytes = videos.Sum(v => v.Length);
+        long totalFreeBytes = _storageService.GetFreeBytes();
+
+
+        if (totalBytes > totalFreeBytes)
+        {
+            double gb = totalBytes / (1024.0 * 1024 * 1024);
+            throw new InsufficientStorageException($"Não há espaço disponivel para salvar os videos, Por favor libere {gb:F2}GB");
+        }
+
+
+        var result = new List<UploadResult>();
         foreach (var video in videos)
         {
             var filePath = Path.Combine(_storagePath, video.FileName);
