@@ -34,6 +34,9 @@ builder.Services.AddControllers();
 
 // Service
 builder.Services.AddScoped<UploadService>();
+builder.Services.AddScoped<StorageService>();
+
+
 var app = builder.Build();
 
 app.UseMiddleware<ApiKeyMiddleware>();
