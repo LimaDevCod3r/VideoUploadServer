@@ -7,41 +7,31 @@ namespace VideoUploadServer.Services;
 public class UploadService
 {
 
-    private readonly IConfiguration _configuration;
+    private readonly string _storagePath;
 
     public UploadService(IConfiguration configuration)
     {
-        _configuration = configuration;
+        _storagePath = configuration["UploadSettings:StoragePath"] ??
+            throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
+
     }
 
 
     public List<VideoInfo> GetAllVideos()
     {
-        var path = _configuration["UploadSettings:StoragePath"];
 
-        if (!Directory.Exists(path))
+        if (!Directory.Exists(_storagePath))
         {
             return [];
         }
 
-        var directoryInfo = new DirectoryInfo(path);
+        var directoryInfo = new DirectoryInfo(_storagePath);
         var files = directoryInfo.GetFiles();
         var result = new List<VideoInfo>();
 
         foreach (var file in files)
         {
-            var resolution = "N/A";
-            try
-            {
-                var mediaInfo = FFProbe.Analyse(file.FullName);
-                var width = mediaInfo.PrimaryVideoStream?.Width;
-                var height = mediaInfo.PrimaryVideoStream?.Height;
-                resolution = $"{width}x{height}";
-            }
-            catch
-            {
-                // arquivo não é um vídeo válido
-            }
+            var resolution = GetResolution(file.FullName);
 
             result.Add(new VideoInfo
             {
@@ -61,10 +51,8 @@ public class UploadService
 
     public VideoInfo? GetVideoByName(string fileName)
     {
-        var path = _configuration["UploadSettings:StoragePath"] ??
-            throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
 
-        var filePath = Path.Combine(path, fileName);
+        var filePath = Path.Combine(_storagePath, fileName);
 
         if (!File.Exists(filePath))
         {
@@ -72,18 +60,7 @@ public class UploadService
         }
 
         var fileInfo = new FileInfo(filePath);
-        var resolution = "N/A";
-        try
-        {
-            var mediaInfo = FFProbe.Analyse(filePath);
-            var width = mediaInfo.PrimaryVideoStream?.Width;
-            var height = mediaInfo.PrimaryVideoStream?.Height;
-            resolution = $"{width}x{height}";
-        }
-        catch
-        {
-            // arquivo não é um vídeo válido
-        }
+        var resolution = GetResolution(filePath);
 
         return new VideoInfo
         {
@@ -97,33 +74,18 @@ public class UploadService
 
     public async Task<List<UploadResult>> UploadVideos(List<IFormFile> videos)
     {
-        var path = _configuration["UploadSettings:StoragePath"] ??
-            throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
-
-        Directory.CreateDirectory(path);
-
+        Directory.CreateDirectory(_storagePath);
 
         var result = new List<UploadResult>();
 
         foreach (var video in videos)
         {
-            var filePath = Path.Combine(path, video.FileName);
+            var filePath = Path.Combine(_storagePath, video.FileName);
 
             using var stream = new FileStream(filePath, FileMode.Create);
             await video.CopyToAsync(stream);
 
-            var resolution = "N/A";
-            try
-            {
-                var mediaInfo = FFProbe.Analyse(filePath);
-                var width = mediaInfo.PrimaryVideoStream?.Width;
-                var height = mediaInfo.PrimaryVideoStream?.Height;
-                resolution = $"{width}x{height}";
-            }
-            catch
-            {
-                // arquivo não é um vídeo válido
-            }
+            var resolution = GetResolution(filePath);
 
             result.Add(new UploadResult
             {
@@ -143,10 +105,8 @@ public class UploadService
 
     public bool DeleteVideo(string fileName)
     {
-        var path = _configuration["UploadSettings:StoragePath"] ??
-            throw new InvalidOperationException("StoragePath não configurado no appsettings.json");
 
-        var filePath = Path.Combine(path, fileName);
+        var filePath = Path.Combine(_storagePath, fileName);
 
         if (!File.Exists(filePath))
         {
@@ -156,6 +116,22 @@ public class UploadService
         File.Delete(filePath);
         return true;
 
+    }
+
+    private static string GetResolution(string path)
+    {
+        try
+        {
+            var mediaInfo = FFProbe.Analyse(path);
+            var width = mediaInfo.PrimaryVideoStream?.Width;
+            var height = mediaInfo.PrimaryVideoStream?.Height;
+            var resolution = $"{width}x{height}";
+            return resolution;
+        }
+        catch
+        {
+            return "N/A";
+        }
     }
 
 }
