@@ -49,7 +49,10 @@ public class UploadController : ControllerBase
         catch (InsufficientStorageException ex)
         {
 
-            return StatusCode(507, ex.Message);
+            return StatusCode(507, new
+            {
+                message = ex.Message
+            });
         }
     }
 

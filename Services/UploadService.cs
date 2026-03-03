@@ -86,8 +86,8 @@ public class UploadService
 
         if (totalBytes > totalFreeBytes)
         {
-            double gb = totalBytes / (1024.0 * 1024 * 1024);
-            throw new InsufficientStorageException($"Não há espaço disponivel para salvar os videos, Por favor libere {gb:F2}GB");
+            double requiredToFreeGB = (totalBytes - totalFreeBytes) / (1024.0 * 1024 * 1024);
+            throw new InsufficientStorageException($"Não há espaço disponivel para salvar os videos, Por favor libere {requiredToFreeGB:F2}GB");
         }
 
 
